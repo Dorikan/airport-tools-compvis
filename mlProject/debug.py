@@ -32,3 +32,5 @@ def draw_boxes_and_save(image: Image.Image, detections, filename: str):
         )
 
     cv2.imwrite(save_path, img_cv)
+
+    return save_path

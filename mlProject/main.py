@@ -6,25 +6,24 @@ import uvicorn
 import requests
 import numpy as np
 from PIL import Image
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, Query, Request
+from fastapi.staticfiles import StaticFiles
 from torchvision import transforms
 from models import EfficientNetWithEmbeddings
 from ultralytics import YOLO
 import debug
-
 
 app = FastAPI(
     title="Instrument QC Service",
     description="YOLO11 + EfficientNet hybrid pipeline with debug outputs",
     version="1.0"
 )
-
+app.mount("/debug_outputs", StaticFiles(directory="debug_outputs"), name="debug_outputs")
 
 yolo_model = YOLO("weights/yolo/best.pt")
 efficientnet_model = EfficientNetWithEmbeddings(num_classes=11).load("weights/efficientnet/best_model.pth")
 
 CONF_THRESHOLD = 0.9
-
 
 eff_transform = transforms.Compose([
     transforms.Resize((224, 224)),
@@ -38,7 +37,9 @@ yolo_size = 640
 
 @app.get("/analyze/")
 async def analyze_image(
-    url: str = Query(..., description="URL изображения для анализа")
+        request: Request,
+        url: str = Query(..., description="URL изображения для анализа"),
+        image_id: int = Query(..., description="ID входного изображения")
 ):
     # Загружаем картинку
     if url.startswith("http"):
@@ -73,19 +74,26 @@ async def analyze_image(
                     cls = int(np.argmax(probs))
                     conf = float(np.max(probs))
 
-
             final_output.append({
                 "bbox": [x1, y1, x2, y2],
                 "class": int(cls),
                 "confidence": float(conf),
-                "embedding": embed
+                "embedding": embed,
+                "hash": 101010  # TODO: make hash func
             })
 
     # ---- Сохраняем debug-картинку ----
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    debug.draw_boxes_and_save(img_resized, final_output, f"debug_{timestamp}.jpg")
+    filename = f"debug_{timestamp}.jpg"
+    path = debug.draw_boxes_and_save(img_resized, final_output, filename)
 
-    return {"results": final_output}
+    file_url = request.url_for("debug_outputs", path=filename)
+
+    return {
+        "image_id": image_id,
+        "instruments": final_output,
+        "debug_image": file_url
+    }
 
 
 # ---- Запуск ----
