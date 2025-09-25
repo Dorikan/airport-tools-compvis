@@ -39,7 +39,7 @@ yolo_size = 640
 async def analyze_image(
         request: Request,
         url: str = Query(..., description="URL изображения для анализа"),
-        image_id: int = Query(..., description="ID входного изображения")
+        image_id: str = Query(..., description="ID входного изображения")
 ):
     # Загружаем картинку
     if url.startswith("http"):
