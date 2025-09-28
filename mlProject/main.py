@@ -13,6 +13,8 @@ from models import EfficientNetWithEmbeddings
 from ultralytics import YOLO
 import debug
 
+
+Image.MAX_IMAGE_PIXELS = 300000000
 app = FastAPI(
     title="Instrument QC Service",
     description="YOLO11 + EfficientNet hybrid pipeline with debug outputs",
@@ -21,7 +23,7 @@ app = FastAPI(
 app.mount("/debug_outputs", StaticFiles(directory="debug_outputs"), name="debug_outputs")
 
 yolo_model = YOLO("weights/yolo/best.pt")
-efficientnet_model = EfficientNetWithEmbeddings(num_classes=11).load("weights/efficientnet/best_model.pth")
+efficientnet_model = EfficientNetWithEmbeddings(num_classes=11).load("weights/efficientnet/effnet-b0.pth")
 
 CONF_THRESHOLD = 0.9
 
@@ -48,14 +50,13 @@ async def analyze_image(
     else:
         img = Image.open(url).convert("RGB")
 
-    # YOLO resize 640x640
-    img_resized = img.resize((yolo_size, yolo_size))
-
-    results = yolo_model(img_resized, imgsz=yolo_size)
+    results = yolo_model(img, imgsz=yolo_size)
 
     final_output = []
     for r in results:
         boxes = r.boxes.xyxy.cpu().numpy()  # [x1, y1, x2, y2]
+
+
         confs = r.boxes.conf.cpu().numpy()
         classes = r.boxes.cls.cpu().numpy().astype(int)
 
@@ -63,16 +64,17 @@ async def analyze_image(
             if conf < 0.75:
                 continue
             x1, y1, x2, y2 = map(int, box)
-            cropped = img_resized.crop((x1, y1, x2, y2))
+            cropped = img.crop((x1, y1, x2, y2))
+            cropped.save('detection_results/TEST.jpg')
 
             x = eff_transform(cropped).unsqueeze(0)
             with torch.no_grad():
                 logits, embed = efficientnet_model(x, return_embedding=True)
                 embed = embed.squeeze(0).tolist()
                 probs = torch.softmax(logits, dim=1).cpu().numpy()[0]
-                if conf < CONF_THRESHOLD:
-                    cls = int(np.argmax(probs))
-                    conf = float(np.max(probs))
+                #if conf < CONF_THRESHOLD:
+                #    cls = int(np.argmax(probs))
+                #    conf = float(np.max(probs))
 
             final_output.append({
                 "bbox": [x1, y1, x2, y2],
@@ -85,7 +87,7 @@ async def analyze_image(
     # ---- Сохраняем debug-картинку ----
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     filename = f"debug_{timestamp}.jpg"
-    path = debug.draw_boxes_and_save(img_resized, final_output, filename)
+    path = debug.draw_boxes_and_save(img, final_output, filename)
 
     file_url = request.url_for("debug_outputs", path=filename)
 

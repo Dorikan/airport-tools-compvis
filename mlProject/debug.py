@@ -26,7 +26,7 @@ def draw_boxes_and_save(image: Image.Image, detections, filename: str):
             f"{cls}:{conf:.2f}",
             (x1, max(0, y1 - 5)),
             cv2.FONT_HERSHEY_SIMPLEX,
-            0.5,
+            3,
             (0, 255, 0),
             2
         )
