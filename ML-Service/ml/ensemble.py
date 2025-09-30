@@ -41,7 +41,7 @@ class FineGrainedEnsemble:
 
             if cls in [3, 4, 5]:
                 if self.state_of_true:
-                    pred, conf = self.__refine_screwdriver(crop_tensor)
+                    cls, conf = self.__refine_screwdriver(crop_tensor)
                 else:
                     yolo_probs = np.zeros(len(r.names))
                     yolo_probs[int(cls)] = conf
