@@ -27,9 +27,10 @@ class PredictionService:
         result = self.model.predict(image, threshold=threshold)
 
         debug_image = Image.fromarray(await draw_results(image, result))
+        (width, height) = (debug_image.width // 2, debug_image.height // 2)
+        debug_image = debug_image.resize((width, height))
         buffer = BytesIO()
         debug_image.save(buffer, format='JPEG')
         base64_image = base64.b64encode(buffer.getvalue())
-        debug_image.save('temp.jpg', format='JPEG')
 
         return {'instruments': result, 'debug_image': base64_image}
