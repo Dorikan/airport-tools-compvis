@@ -121,10 +121,10 @@ GET http://{HOST}:{PORT}/api/v1/predict/?image_id={image_id, str}&url={image_url
 
 ## ⚙️ Конфигурация
 
-Конфигурация проекта осуществляется через файл config.py. 
+Конфигурация проекта осуществляется через файл [config.py](https://sourcecraft.dev/drsn/compvis/browse/ML-Service/utils/config.py?rev=main).
 
 ---
 
 ## 🐒 Авторство
 
-*  **Чепель Илья** — backend & ML
+* **Чепель Илья** — backend & ML
