@@ -8,6 +8,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libglib2.0-0 \
  && rm -rf /var/lib/apt/lists/*
 
+ARG TORCH_INDEX=none
+
+ENV TORCH_INDEX=${TORCH_INDEX}
+
+# Установка PyTorch + torchvision
+RUN if [ "$TORCH_INDEX" = "none" ]; then \
+        pip install torch torchvision; \
+    else \
+        pip install torch torchvision --index-url https://download.pytorch.org/whl/${TORCH_INDEX}; \
+    fi
+
 # Копируем зависимости проекта
 COPY ML-Service/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
