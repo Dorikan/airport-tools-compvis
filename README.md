@@ -20,6 +20,12 @@
 
 ## 🏃 Быстрый старт
 
+{% cut "Установка PyTorch" %}
+
+Обратите внимамние. В файле requirements.txt нет необходимых для работы проекта библиотек torch и torchvision. Это связано с тем, что для разных конфигураций устройств следует использовать разные билды библиотек. Получить index-url для своей сборки вы можете на [официальном сайте PyTorch](https://pytorch.org/get-started/locally/) через их виджет. В коде будут приведены примеры для некоторых конфигураций.
+
+{% endcut %}
+
 {% list tabs %}
 
 - Linux/MacOS
@@ -34,6 +40,9 @@
   
   # Активировать окружение
   source venv/bin/activate
+  
+  # Установка PyTorch. Пример для CPU.
+  pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
   
   # Установить зависимости
   pip install --upgrade pip
@@ -56,6 +65,9 @@
   # Активировать окружение
   venv\Scripts\activate
   
+  # Установка PyTorch. Пример для CPU.
+  pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+  
   # Установить зависимости
   pip install --upgrade pip
   pip install -r requirements.txt
@@ -68,10 +80,25 @@
 
 ## 🔹 Запуск в Docker
 
-```bash
-docker build -t ml_service .
-docker run -p 8000:8000 ml_service
-```
+Вариант конфигурации для PyTorch можно указать явно. Если его не указывать, установка произойдет из репозитория PyPI.
+
+{% list tabs %}
+
+- CPU
+
+  ```
+  docker build -t ml_service --build-arg TORCH_INDEX=сpu .
+  docker run -p 8000:8000 ml_service
+  ```
+
+- CUDA 12.8
+
+  ```
+  docker build -t ml_service --build-arg TORCH_INDEX=cu128 .
+  docker run -p 8000:8000 ml_service
+  ```
+
+{% endlist %}
 
 ---
 
@@ -127,4 +154,4 @@ GET http://{HOST}:{PORT}/api/v1/predict/?image_id={image_id, str}&url={image_url
 
 ## 🐒 Авторство
 
-* **Чепель Илья** — backend & ML
+* **Чепель Илья** — ML и FastApi сервис
