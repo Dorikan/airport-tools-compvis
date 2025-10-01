@@ -55,7 +55,7 @@ class FineGrainedEnsemble:
 
             embedding = None
             if conf < threshold:
-                _, embedding = self.embedder(crop_tensor)
+                _, embedding = self.embedder(crop_tensor, return_embedding=True)
                 embedding = embedding.cpu().squeeze(0).tolist()
 
             result.append({
