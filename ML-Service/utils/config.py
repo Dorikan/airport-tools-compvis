@@ -22,8 +22,8 @@ class Config:
     ALPHA = 0.7
 
     # сервис
-    API_HOST = os.getenv("HOST", "0.0.0.0")
-    API_PORT = int(os.getenv("PORT", 8000))
+    API_HOST = os.getenv("ML_HOST", "0.0.0.0")
+    API_PORT = int(os.getenv("ML_PORT", 8000))
 
     # классы объектов
     CLASSES_DICT = {
