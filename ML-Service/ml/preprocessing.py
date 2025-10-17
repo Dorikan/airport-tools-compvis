@@ -3,7 +3,7 @@ import io
 import requests
 
 
-async def load_image(url):
+async def load_image(url) -> Image.Image:
     if url.startswith("http"):
         response = requests.get(url)
         img = Image.open(io.BytesIO(response.content)).convert("RGB")
