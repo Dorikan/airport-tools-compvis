@@ -94,19 +94,11 @@ class FineGrainedEnsemble:
             else:
                 screw_probs = np.zeros((0, 3))
 
-            low_conf_mask = [conf < threshold for conf in confs]
-            if any(low_conf_mask):
-                low_conf_tensors = batch_tensors[low_conf_mask]
-                with torch.no_grad():
-                    _, emb_low = self.embedder(low_conf_tensors, return_embedding=True)
-                emb_low = emb_low.cpu().numpy()
-            else:
-                emb_low = np.zeros((0, 1024))
+            final_confs = []
+            final_classes = []
 
-            # === Формируем финальный результат
-            detections = []
-            screw_ptr, emb_ptr = 0, 0
-            for box, conf, cls, screw_flag, low_flag in zip(boxes, confs, classes, screw_mask, low_conf_mask):
+            screw_ptr = 0
+            for conf, cls, screw_flag in zip(confs, classes, screw_mask):
                 if screw_flag:
                     if self.state_of_true:
                         pred = int(np.argmax(screw_probs[screw_ptr]))
@@ -123,6 +115,22 @@ class FineGrainedEnsemble:
                         conf = float(final_probs[cls])
                     screw_ptr += 1
 
+                final_classes.append(cls)
+                final_confs.append(conf)
+
+            low_conf_mask = [conf < threshold for conf in final_confs]
+
+            if any(low_conf_mask):
+                low_conf_tensors = batch_tensors[low_conf_mask]
+                with torch.no_grad():
+                    _, emb_low = self.embedder(low_conf_tensors, return_embedding=True)
+                emb_low = emb_low.cpu().numpy()
+            else:
+                emb_low = np.zeros((0, 1024))
+
+            detections = []
+            emb_ptr = 0
+            for box, cls, conf, low_flag in zip(boxes, final_classes, final_confs, low_conf_mask):
                 embedding = emb_low[emb_ptr].tolist() if low_flag else []
                 if low_flag:
                     emb_ptr += 1
