@@ -1,8 +1,10 @@
 from fastapi import APIRouter, Request, Query
 from services.prediction_service import PredictionService
+from services.batched_prediction_service import BatchedPredictionService
 
 router = APIRouter()
-service = PredictionService()
+service = BatchedPredictionService()
+
 
 @router.get("/predict")
 async def predict(
