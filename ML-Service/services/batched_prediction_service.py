@@ -21,7 +21,7 @@ class BatchedPredictionService:
         self.screwdriver_model = EfficientNetWithEmbeddings.load(Config.SCREWDRIVER_MODEL, num_classes=3)
         self.model = FineGrainedEnsemble(
             self.yolo, self.screwdriver_model, self.embedder,
-            state_of_true=True, alpha=Config.ALPHA, yolo_size=Config.YOLO_IMG_SIZE,
+            state_of_true=Config.SCREWDRIVER_STATE_OF_TRUE, alpha=Config.ALPHA, yolo_size=Config.YOLO_IMG_SIZE,
             device=Config.DEVICE
         )
         self.max_batch_size = max_batch_size
