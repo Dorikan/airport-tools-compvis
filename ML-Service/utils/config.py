@@ -20,7 +20,7 @@ class Config:
 
     # ансамбль
     ALPHA = os.getenv('ALPHA', 0)
-    SCREWDRIVER_STATE_OF_TRUE = os.getenv('STATE_OF_TRUE', True)
+    SCREWDRIVER_STATE_OF_TRUE = os.getenv('STATE_OF_TRUE', 'true') == 'true'
 
     # сервис
     API_HOST = os.getenv("ML_HOST", "0.0.0.0")
