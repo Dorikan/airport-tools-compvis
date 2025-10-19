@@ -62,7 +62,6 @@ class BatchedPredictionService:
 
                 buffer = BytesIO()
                 debug_image.save(buffer, format='JPEG')
-                debug_image.save("result.jpg", format='JPEG')
                 base64_image = base64.b64encode(buffer.getvalue())
 
                 fut.set_result({
