@@ -150,85 +150,15 @@ GET http://{HOST}:{PORT}/api/v1/predict/?image_id={image_id, str}&url={image_url
 
 Конфигурация проекта осуществляется через файл [config.py](https://sourcecraft.dev/drsn/compvis/browse/ML-Service/utils/config.py?rev=main).
 
----
 
-#|
-||
+|Model|FLOPs|cpu (ms)|T4 (ms)|
+|--|--|--|--|
+|YOLOv11l|86\.9 B|800 ± 200|6\.2  ±  0.1|
+|EfficientNet-b0 (Embedder)|0\.39 G|20 ± 5|0\.00008 ±  0.00016|
+|EfficientNet-b0 (Screwdriver clasifier)|0\.39 G|20 ± 5|0\.00008 ±  0.00016|
 
-Model
 
-|
-
-FLOPs
-
-|
-
-cpu (ms)
-
-|
-
-T4 (ms)
-
-||
-||
-
-YOLOv11l
-
-|
-
-86\.9 B
-
-|
-
-800 ± 200
-
-|
-
-6\.2  ±  0.1
-
-||
-||
-
-EfficientNet-b0 
-
-(Embedder)
-
-|
-
-0\.39 G
-
-|
-
-20 ± 5
-
-|
-
-0\.00008 ±  0.00016
-
-||
-||
-
-EfficientNet-b0 
-
-(Screwdriver clasifier)
-
-|
-
-0\.39 G
-
-|
-
-20 ± 5
-
-|
-
-0\.00008 ±  0.00016
-
-||
-|#
-
----
 
 ## 🐒 Авторство
 
-* **Чепель Илья** — ML и FastApi сервис
+* **Dorikan** — ML и FastApi сервис
