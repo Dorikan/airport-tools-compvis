@@ -4,6 +4,10 @@ import os
 
 
 class Config:
+    """
+    Configuration class for the ML Service.
+    Loads settings from environment variables or uses default values.
+    """
     # пути к моделям
     BASE_DIR = Path(__file__).resolve().parent.parent
     MODELS_DIR = BASE_DIR / "weights"
@@ -25,6 +29,14 @@ class Config:
     # сервис
     API_HOST = os.getenv("ML_HOST", "0.0.0.0")
     API_PORT = int(os.getenv("ML_PORT", 8000))
+
+    # параметры инференса
+    THRESHOLD = float(os.getenv("THRESHOLD", 0.8))
+    BATCH_TIMEOUT = float(os.getenv("BATCH_TIMEOUT", 0.05))
+    MAX_BATCH_SIZE = int(os.getenv("MAX_BATCH_SIZE", 8))
+    
+    SCREWDRIVER_NUM_CLASSES = 3
+    EMBEDDER_NUM_CLASSES = 11
 
     # классы объектов
     CLASSES_DICT = {

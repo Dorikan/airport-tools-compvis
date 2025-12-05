@@ -6,8 +6,23 @@ from ml.transforms.efficientnet import EfficientNetTransforms
 
 
 class FineGrainedEnsemble:
+    """
+    Ensemble model combining YOLO detection, EfficientNet classification, and embedding generation.
+    """
     def __init__(self, detector: YOLO, classifier: EfficientNetWithEmbeddings, embedder: EfficientNetWithEmbeddings,
                  state_of_true=False, alpha=0.7, yolo_size=(640, 640), device="cpu"):
+        """
+        Initializes the ensemble model.
+
+        Args:
+            detector (YOLO): YOLO model for object detection.
+            classifier (EfficientNetWithEmbeddings): Model for fine-grained classification.
+            embedder (EfficientNetWithEmbeddings): Model for generating embeddings.
+            state_of_true (bool): If True, uses classifier prediction directly. If False, ensembles with YOLO.
+            alpha (float): Weight for YOLO confidence in ensemble (used if state_of_true is False).
+            yolo_size (tuple): Input size for YOLO model.
+            device (str): Device to run models on ('cpu' or 'cuda').
+        """
         self.detector = detector.to(device)
         self.classifier = classifier.to(device)
         self.embedder = embedder.to(device)
@@ -17,7 +32,7 @@ class FineGrainedEnsemble:
         self.yolo_size = yolo_size
         self.efficientnet_tfs = EfficientNetTransforms()
 
-    def __refine_screwdriver(self, x):
+    def _refine_screwdriver(self, x):
         with torch.no_grad():
             logits = self.classifier(x)
             probs = torch.softmax(logits, dim=1).cpu().numpy()[0]
@@ -27,6 +42,16 @@ class FineGrainedEnsemble:
 
 
     def predict(self, image, threshold=0.8):
+        """
+        Predicts objects in a single image.
+
+        Args:
+            image (PIL.Image.Image): Input image.
+            threshold (float): Confidence threshold for embedding generation.
+
+        Returns:
+            list: List of detected objects with bounding boxes, classes, confidences, and embeddings.
+        """
         r = self.detector(image, imgsz=self.yolo_size, agnostic_nms=True, retina_masks=True, half=True)[0]
 
         boxes = r.boxes.xyxy.cpu().numpy()
@@ -42,11 +67,11 @@ class FineGrainedEnsemble:
 
             if cls in [3, 4, 5]:
                 if self.state_of_true:
-                    cls, conf = self.__refine_screwdriver(crop_tensor)
+                    cls, conf = self._refine_screwdriver(crop_tensor)
                 else:
                     yolo_probs = np.zeros(len(r.names))
                     yolo_probs[int(cls)] = conf
-                    pred_, conf_ = self.__refine_screwdriver(crop_tensor)
+                    pred_, conf_ = self._refine_screwdriver(crop_tensor)
                     t = np.zeros(len(r.names))
                     t[pred_] = conf_
 
@@ -69,6 +94,16 @@ class FineGrainedEnsemble:
         return result
 
     def predict_batch(self, images, thresholds):
+        """
+        Predicts objects in a batch of images.
+
+        Args:
+            images (list[PIL.Image.Image]): List of input images.
+            thresholds (list[float]): List of confidence thresholds for each image.
+
+        Returns:
+            list: List of lists of detected objects for each image.
+        """
         results = self.detector(images, imgsz=self.yolo_size, agnostic_nms=True, retina_masks=True)
         all_results = []
 

@@ -1,36 +1,48 @@
+import asyncio
 from PIL import Image
-from ultralytics import YOLO
-
 from ml.preprocessing import load_image
-from ml.ensemble import FineGrainedEnsemble
 from utils.config import Config
-from ml.models import EfficientNetWithEmbeddings
 from utils.draw import draw_results
+from ml.factory import create_ensemble_model
+from fastapi import HTTPException
 from io import BytesIO
 import base64
 
 
 class PredictionService:
+    """
+    Service for single image prediction using an ensemble of models.
+    """
     def __init__(self):
+        """
+        Initializes the prediction service by creating the ensemble model.
+        """
+        self.model = create_ensemble_model()
 
-        self.yolo = YOLO(Config.YOLO_MODEL)
-        self.embedder = EfficientNetWithEmbeddings.load(Config.EMBEDDER_MODEL)
-        self.screwdriver_model = EfficientNetWithEmbeddings.load(Config.SCREWDRIVER_MODEL, num_classes=3)
-        self.model = FineGrainedEnsemble(
-            self.yolo, self.screwdriver_model, self.embedder,
-            state_of_true=True, alpha=Config.ALPHA, yolo_size=Config.YOLO_IMG_SIZE,
-            device=Config.DEVICE
-        )
+    async def predict(self, url: str, threshold: float = Config.THRESHOLD) -> dict:
+        """
+        Predicts instruments in the image from the given URL.
 
-    async def predict(self, url, threshold=0.8):
-        image = await load_image(url)
-        result = self.model.predict(image, threshold=threshold)
+        Args:
+            url (str): URL of the image to analyze.
+            threshold (float): Confidence threshold for embedding generation.
 
-        debug_image = Image.fromarray(await draw_results(image, result))
-        (width, height) = (debug_image.width // 2, debug_image.height // 2)
-        debug_image = debug_image.resize((width, height))
-        buffer = BytesIO()
-        debug_image.save(buffer, format='JPEG')
-        base64_image = base64.b64encode(buffer.getvalue())
+        Returns:
+            dict: A dictionary containing the prediction results and a base64 encoded debug image.
+        """
+        try:
+            image = await load_image(url)
+            loop = asyncio.get_running_loop()
+            result = await loop.run_in_executor(None, self.model.predict, image, threshold)
 
-        return {'instruments': result, 'debug_image': base64_image}
+            debug_image = Image.fromarray(await draw_results(image, result))
+            (width, height) = (debug_image.width // 2, debug_image.height // 2)
+            debug_image = debug_image.resize((width, height))
+            buffer = BytesIO()
+            debug_image.save(buffer, format='JPEG')
+            base64_image = base64.b64encode(buffer.getvalue())
+
+            return {'instruments': result, 'debug_image': base64_image}
+        except Exception as e:
+            print(f"Error processing image {url}: {e}")
+            raise HTTPException(status_code=500, detail=f"Failed to process image: {str(e)}")
