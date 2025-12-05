@@ -20,85 +20,76 @@
 
 ## 🏃 Быстрый старт
 
-{% cut "Установка PyTorch" %}
+<details>
+<summary>Установка PyTorch</summary>
 
-Обратите внимамние. В файле requirements.txt нет необходимых для работы проекта библиотек torch и torchvision. Это связано с тем, что для разных конфигураций устройств следует использовать разные билды библиотек. Получить index-url для своей сборки вы можете на [официальном сайте PyTorch](https://pytorch.org/get-started/locally/) через их виджет. В коде будут приведены примеры для некоторых конфигураций.
+Обратите внимание. В файле requirements.txt нет необходимых для работы проекта библиотек torch и torchvision. Это связано с тем, что для разных конфигураций устройств следует использовать разные билды библиотек. Получить index-url для своей сборки вы можете на [официальном сайте PyTorch](https://pytorch.org/get-started/locally/) через их виджет. В коде будут приведены примеры для некоторых конфигураций.
 
-{% endcut %}
+</details>
 
-{% list tabs %}
+### 🔹 Запуск локально
 
-- Linux/MacOS
+#### Linux/MacOS
 
-  ### 🔹 Запуск локально
+```bash
+cd ML-Service
 
-  ```bash
-  cd ML-Service
-  
-  # Создать виртуальное окружение (venv)
-  python3 -m venv venv
-  
-  # Активировать окружение
-  source venv/bin/activate
-  
-  # Установка PyTorch. Пример для CPU.
-  pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
-  
-  # Установить зависимости
-  pip install --upgrade pip
-  pip install -r requirements.txt
-  
-  # Запустить проект
-  python main.py
-  ```
+# Создать виртуальное окружение (venv)
+python3 -m venv venv
 
-- Windows
+# Активировать окружение
+source venv/bin/activate
 
-  ### 🔹 Запуск локально
+# Установка PyTorch. Пример для CPU.
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
 
-  ```bash
-  cd ML-Service
-  
-  # Создать виртуальное окружение (venv)
-  python3 -m venv venv
-  
-  # Активировать окружение
-  venv\Scripts\activate
-  
-  # Установка PyTorch. Пример для CPU.
-  pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
-  
-  # Установить зависимости
-  pip install --upgrade pip
-  pip install -r requirements.txt
-  
-  # Запустить проект
-  python main.py
-  ```
+# Установить зависимости
+pip install --upgrade pip
+pip install -r requirements.txt
 
-{% endlist %}
+# Запустить проект
+python main.py
+```
+
+#### Windows
+
+```bash
+cd ML-Service
+
+# Создать виртуальное окружение (venv)
+python3 -m venv venv
+
+# Активировать окружение
+venv\Scripts\activate
+
+# Установка PyTorch. Пример для CPU.
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+
+# Установить зависимости
+pip install --upgrade pip
+pip install -r requirements.txt
+
+# Запустить проект
+python main.py
+```
 
 ## 🔹 Запуск в Docker
 
 Вариант конфигурации для PyTorch можно указать явно. Если его не указывать, установка произойдет из репозитория PyPI.
 
-{% list tabs %}
+#### CPU
 
-- CPU
+```bash
+docker build -t ml_service --build-arg TORCH_INDEX=сpu .
+docker run -p 8000:8000 ml_service
+```
 
-  ```
-  docker build -t ml_service --build-arg TORCH_INDEX=сpu .
-  docker run -p 8000:8000 ml_service
-  ```
+#### CUDA 12.8
 
-- CUDA 12.8
-
-  ```
-  docker build -t ml_service --build-arg TORCH_INDEX=cu128 .
-  docker run -p 8000:8000 ml_service
-  ```
-
-{% endlist %}
+```bash
+docker build -t ml_service --build-arg TORCH_INDEX=cu128 .
+docker run -p 8000:8000 ml_service
+```
 
 ---
 
@@ -148,7 +139,7 @@ GET http://{HOST}:{PORT}/api/v1/predict/?image_id={image_id, str}&url={image_url
 
 ## ⚙️ Конфигурация
 
-Конфигурация проекта осуществляется через файл [config.py](https://sourcecraft.dev/drsn/compvis/browse/ML-Service/utils/config.py?rev=main).
+Конфигурация проекта осуществляется через файл [config.py](ML-Service/utils/config.py).
 
 
 |Model|FLOPs|cpu (ms)|T4 (ms)|
